@@ -1,4 +1,17 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+.env
+*.log
+.DS_Store
+
+# Project specific
 *.ini
-test.sql
-test.py
-create_views.sql
+scripts/test.sql
+scripts/test.py
+scripts/create_views.sql
