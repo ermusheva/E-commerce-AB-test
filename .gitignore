@@ -1,4 +1,4 @@
 *.ini
-scripts/test.sql
-scripts/test.py
-scripts/create_views.sql
+./scripts/test.sql
+./scripts/test.py
+./scripts/create_views.sql
