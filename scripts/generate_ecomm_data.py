@@ -18,7 +18,7 @@ def generate_users(num_users: int, experiment_id:int) -> pd.DataFrame:
     df_users = pd.DataFrame({
         'user_id': user_ids,
         'experiment_id' : experiment_id,
-        'test_group': [random.choice(['A', 'B']) for _ in range(num_users)],
+        'test_group': ['A' if (hash(id) % 2)<1 else 'B' for id in user_ids],
         'assigned_at': datetime.today()
     })
     return df_users
@@ -120,11 +120,11 @@ def pivot_plot_df_events(df_events, df_users):
     print("Daily Revenue (First 5 rows):")
     print(df_value_purchase.head())
 
-    plot_chart(df_count_view, 'Daily Views', 'Count', '..//assets//count_views.png')
-    plot_chart(df_count_add_to_basket, 'Daily Add to Basket', 'Count', '..//assets//count_baskets.png')
-    plot_chart(df_count_checkout, 'Daily Checkouts', 'Count', '..//assets//count_checkouts.png')
-    plot_chart(df_count_purchase, 'Daily Purchases', 'Count', '..//assets//count_purchase.png')
-    plot_chart(df_value_purchase, 'Daily Revenue', 'Revenue ($)', '..//assets//revenue.png')
+    plot_chart(df_count_view, 'Daily Views', 'Count', './/assets//count_views.png')
+    plot_chart(df_count_add_to_basket, 'Daily Add to Basket', 'Count', './/assets//count_baskets.png')
+    plot_chart(df_count_checkout, 'Daily Checkouts', 'Count', './/assets//count_checkouts.png')
+    plot_chart(df_count_purchase, 'Daily Purchases', 'Count', './/assets//count_purchase.png')
+    plot_chart(df_value_purchase, 'Daily Revenue', 'Revenue ($)', './/assets//revenue.png')
     
     
 
@@ -133,7 +133,7 @@ if __name__ == "__main__":
     np.random.seed(42)
 
     config = configparser.ConfigParser()
-    config.read("config.ini")
+    config.read(".//scripts//config.ini")
 
     #  DB Connection parameters
     connection_string = (
@@ -148,8 +148,14 @@ if __name__ == "__main__":
     experiment_id = int(pd.read_sql(sql_str_for_experiment_id, con=engine).iloc[0,0])
     
     df_users = generate_users(int(config['DATA']['NUM_USERS']), experiment_id)
+    
+    len_a =  (df_users['test_group'] == 'A').sum()
+    print((f"Unique users in group A {len_a} and in group B {len(df_users) - len_a}"))
+    
     df_events = generate_events(df_users, datetime.strptime(config['DATA']['HISTORY_START_DATE'], "%d-%m-%Y"), datetime.strptime(config['DATA']['HISTORY_END_DATE'], "%d-%m-%Y"),
                                 datetime.strptime(config['DATA']['TEST_START_DATE'], "%d-%m-%Y"), datetime.strptime(config['DATA']['TEST_END_DATE'], "%d-%m-%Y"))
+    
+    
     
     # Plot daily data
     pivot_plot_df_events(df_events, df_users)
