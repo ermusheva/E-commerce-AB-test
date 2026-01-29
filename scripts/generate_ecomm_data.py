@@ -7,6 +7,7 @@ from datetime import datetime, timedelta
 import configparser
 import os
 import matplotlib.pyplot as plt
+import data_exchange
 
 def generate_experiment_descr(test_name, test_h0)  -> pd.DataFrame:
     experiment_descr = [test_name, test_h0, 'running']
@@ -22,8 +23,6 @@ def generate_users(num_users: int, experiment_id:int) -> pd.DataFrame:
         'assigned_at': datetime.today()
     })
     return df_users
-
-
 
 def generate_session(uid, group, start_date, end_date, is_test_period=False)->list:
     """Generates a sequence of events with varying devices and conditional revenue
@@ -127,20 +126,12 @@ def pivot_plot_df_events(df_events, df_users):
     plot_chart(df_value_purchase, 'Daily Revenue', 'Revenue ($)', './/assets//revenue.png')
     
     
+ 
 
 if __name__ == "__main__":
     fake = Faker()
     np.random.seed(42)
-
-    config = configparser.ConfigParser()
-    config.read(".//scripts//config.ini")
-
-    #  DB Connection parameters
-    connection_string = (
-        f"mssql+pyodbc://{config['DB PARAMS']['USERNAME']}:{config['DB PARAMS']['PASSWORT']}@{config['DB PARAMS']['SERVER']}/{config['DB PARAMS']['DATABASE']}"
-        f"?driver={config['DB PARAMS']['DRIVER']}"
-    )
-    engine = create_engine(connection_string, fast_executemany=True)
+    config, engine = data_exchange.connect_to_db()
 
     df_experiment = generate_experiment_descr(config['EXPERIMENT']['NAME'], config['EXPERIMENT']['H0'])
     df_experiment.to_sql('Experiments', con=engine, if_exists='append', index=False)
@@ -155,14 +146,14 @@ if __name__ == "__main__":
     df_events = generate_events(df_users, datetime.strptime(config['DATA']['HISTORY_START_DATE'], "%d-%m-%Y"), datetime.strptime(config['DATA']['HISTORY_END_DATE'], "%d-%m-%Y"),
                                 datetime.strptime(config['DATA']['TEST_START_DATE'], "%d-%m-%Y"), datetime.strptime(config['DATA']['TEST_END_DATE'], "%d-%m-%Y"))
     
-    
-    
-    # Plot daily data
+    # Plot daily data 
     pivot_plot_df_events(df_events, df_users)
     
     # Insert to DB
     df_users.to_sql('UserAssignments', con=engine, if_exists='replace', index=False)
     df_events.to_sql('EventLogs', con=engine, if_exists='replace', index=False)
+
+    # Populate DailyMetrics table
     print("Data uploaded successfully.")
     
     
