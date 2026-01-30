@@ -12,7 +12,4 @@ venv/
 
 # Project specific
 *.ini
-scripts/test.sql
-scripts/test.py
-scripts/create_views.sql
 scripts/drop_all_tables.sql

@@ -6,7 +6,6 @@ import random
 from datetime import datetime, timedelta
 import configparser
 import os
-import matplotlib.pyplot as plt
 import data_exchange
 
 def generate_experiment_descr(test_name, test_h0)  -> pd.DataFrame:
@@ -37,8 +36,8 @@ def generate_session(uid, group, start_date, end_date, is_test_period=False)->li
     cr = 0.6
     rev_mult = 1.0
     if is_test_period and group == 'B':
-        cr = 0.65
-        rev_mult = 1.041
+        cr = 0.63
+        rev_mult = 1.04
 
     # View
     events.append([uid, 'view', ts, session_device, None])
@@ -73,61 +72,6 @@ def generate_events(df_users: pd.DataFrame,
 
     return pd.DataFrame(events, columns=['user_id', 'event_type', 'event_timestamp', 'device', 'revenue'])
 
-def get_pivoted_df_by_event_type(df, event_name, value_col='event_type', agg_func='sum'):
-    # Filter for the specific event
-    filtered_df = df[df['event_type'] == event_name]
-    
-    pivoted = filtered_df.pivot_table(
-        index='date',
-        columns='test_group',
-        values=value_col, 
-        aggfunc=agg_func,
-        fill_value=0
-    )
-    return pivoted.rename(columns={value_col : 'value'})
-
-def plot_chart(df, title, ylabel, filename):
-    dates = df.index
-    x = np.arange(len(dates))
-    width = 0.35
-    
-    plt.bar(x - width/2, df['A'], width, label='Group A', color='#94A3B8')
-    plt.bar(x + width/2, df['B'], width, label='Group B', color="#8B5CF6")
-    
-    plt.title(title)
-    plt.xlabel('Date')
-    plt.ylabel(ylabel)
-    plt.xticks(x[::15], [d.strftime('%m-%d') for d in dates[::15]])
-    plt.legend()
-    plt.tight_layout()
-    plt.savefig(filename)
-    plt.close()
-
-def pivot_plot_df_events(df_events, df_users):
-    df_events['event_timestamp'] = pd.to_datetime(df_events['event_timestamp'])
-    df_cleaned_events = df_events.dropna(subset=['event_timestamp']).copy()
-    df_cleaned_events['date'] = df_cleaned_events['event_timestamp'].dt.date
-    df_cleaned_events = df_cleaned_events.merge(df_users, on='user_id')
-    df_count_view = get_pivoted_df_by_event_type(df_cleaned_events, 'view', agg_func='count')
-    df_count_add_to_basket = get_pivoted_df_by_event_type(df_cleaned_events, 'add_to_basket', agg_func='count')
-    df_count_checkout = get_pivoted_df_by_event_type(df_cleaned_events, 'checkout', agg_func='count')
-    df_count_purchase = get_pivoted_df_by_event_type(df_cleaned_events, 'purchase', agg_func='count')
-    df_value_purchase = get_pivoted_df_by_event_type(df_cleaned_events, 'purchase', value_col='revenue', agg_func='sum')
-
-    print("Daily Views (First 5 rows):")
-    print(df_count_view.head())
-    print("Daily Revenue (First 5 rows):")
-    print(df_value_purchase.head())
-
-    plot_chart(df_count_view, 'Daily Views', 'Count', './/assets//count_views.png')
-    plot_chart(df_count_add_to_basket, 'Daily Add to Basket', 'Count', './/assets//count_baskets.png')
-    plot_chart(df_count_checkout, 'Daily Checkouts', 'Count', './/assets//count_checkouts.png')
-    plot_chart(df_count_purchase, 'Daily Purchases', 'Count', './/assets//count_purchase.png')
-    plot_chart(df_value_purchase, 'Daily Revenue', 'Revenue ($)', './/assets//revenue.png')
-    
-    
- 
-
 if __name__ == "__main__":
     fake = Faker()
     np.random.seed(42)
@@ -145,9 +89,6 @@ if __name__ == "__main__":
     
     df_events = generate_events(df_users, datetime.strptime(config['DATA']['HISTORY_START_DATE'], "%d-%m-%Y"), datetime.strptime(config['DATA']['HISTORY_END_DATE'], "%d-%m-%Y"),
                                 datetime.strptime(config['DATA']['TEST_START_DATE'], "%d-%m-%Y"), datetime.strptime(config['DATA']['TEST_END_DATE'], "%d-%m-%Y"))
-    
-    # Plot daily data 
-    pivot_plot_df_events(df_events, df_users)
     
     # Insert to DB
     df_users.to_sql('UserAssignments', con=engine, if_exists='replace', index=False)

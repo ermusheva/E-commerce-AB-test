@@ -19,7 +19,7 @@ def sample_sizing(history_var, mde, alpha=0.05, power=0.8):
 
 # Size of sample for ARPU
 def arpu_sample_sizing(engine, first_history_month, last_history_month, alpha=0.05, power=0.8):
-    sql_str_for_events = "SELECT * FROM [dbo].[vw_MonthlyRevenueStats] WHERE month BETWEEN " + str(first_history_month) + " AND " + str(last_history_month)
+    sql_str_for_events = f"SELECT * FROM [dbo].[vw_MonthlyRevenueStats] WHERE month BETWEEN {first_history_month} AND {last_history_month}"
     df_revenue_stats_by_month = pd.read_sql(sql_str_for_events, con=engine)
     
     history_revenue_mean = df_revenue_stats_by_month['mean_revenue'].mean()
@@ -39,7 +39,7 @@ def arpu_sample_sizing(engine, first_history_month, last_history_month, alpha=0.
     return [history_revenue_mean, history_revenue_var, revenue_mde, rev_sampling_size, revenue_duration]
 
 def cr_sample_sizing(engine, first_history_month, last_history_month, alpha=0.05, power=0.8):
-    sql_str_for_events = "SELECT * FROM [dbo].[vw_MonthlyFunnel] WHERE month BETWEEN " + str(first_history_month) + " AND " + str(last_history_month)
+    sql_str_for_events = f"SELECT * FROM [dbo].[vw_MonthlyFunnel] WHERE month BETWEEN {first_history_month} AND {last_history_month}"
     df_cr_stats_by_month = pd.read_sql(sql_str_for_events, con=engine)
 
     history_cr_mean = df_cr_stats_by_month['conversion_rate'].mean()
@@ -73,7 +73,7 @@ if __name__ == "__main__":
                                    float(config['EXPERIMENT']['POWER']))
 
 
-    # Number of users for CR1 
+    # Number of users for CR = Unique users with purchase / Unique users with checkout
     cr_stat = cr_sample_sizing(engine, 
                                    first_history_month, 
                                    last_history_month, 
