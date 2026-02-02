@@ -3,18 +3,88 @@
 ## Project Description
 An E-commerce store wants to add a new Payment Service Provider. The team wants to implement buttons for Apple Pay and Google Pay at the top of the final payment step. With the help of an A/B test, the team checks the efficiency of the implementation.
 
-All the data is generated with Python and Faker.
+## Core Stack
+- **Python 3.11+** - Main development language
+- **MS SQL Server Express** - Data storage and aggregation
+- **Power BI** - Reporting and visualization
+
+### Python Libraries
+- `pandas` - Data manipulation and analysis
+- `numpy` - Numerical computations
+- `scipy` - Statistical tests (z-test, chi-square, Mann-Whitney)
+- `sqlalchemy` - Database connectivity and ORM
+- `faker` - Synthetic data generation
+- `matplotlib` - Data visualization
+- `configparser` - Configuration management
+- `pyodbc` - SQL Server driver (ODBC Driver 17 for SQL Server)
+- `logging` - File and console logging
+
 
 <details>
-  <summary>Data generation</summary>
+  <summary>Database Entity Relationship Diagram</summary>
+
+```mermaid
+erDiagram
+    Experiments ||--o{ UserAssignments : "users assigned"
+    Experiments ||--o{ ExperimentMetrics : "has results"
+    Experiments ||--o{ DailyMetrics : "daily stats"
+    UserAssignments ||--o{ EventLogs : "performs actions"
+
+    Experiments {
+        int experiment_id PK
+        VARCHAR(100) experiment_name
+        TEXT hypothesis
+        VARCHAR(20) status
+    }
+    UserAssignments {
+        VARCHAR(50) user_id PK
+        int experiment_id PK "FK"
+        CHAR(1) test_group
+        datetime assigned_at
+    }
+    EventLogs {
+        int event_id PK
+        VARCHAR(50) user_id
+        VARCHAR(50) event_type
+        datetime event_timestamp
+        VARCHAR(20) device
+        decimal revenue
+    }
+    ExperimentMetrics {
+        int metric_id PK
+        int experiment_id FK
+        VARCHAR(50) metric_name
+        float control_value
+        float variant_value
+        float lift_pct
+        float p_value
+        BIT is_significant
+        datetime analysis_date
+        int sample_size_a
+        int sample_size_b
+        int test_duration_days
+        TEXT notes
+    }
+    DailyMetrics {
+        date date PK
+        int experiment_id PK "FK"
+        CHAR(1) test_group PK
+        VARCHAR(50) event_type PK
+        int event_count
+        int unique_users
+        decimal total_revenue
+    }
+```
 </details>
- 
 
 ## Workflow
 ### 1. Choose metrics and fix hypothesis
-*   **Conversion Rate (CR)**:
+*   Conversion Rate (CR):
+
     $$ CR = \frac{\text{Unique users with purchase}}{\text{Unique users with checkout}} $$
-*   **ARPU (Average Revenue Per User)**:
+
+*   ARPU (Average Revenue Per User):
+
     $$ ARPU = \frac{\text{Total revenue}}{\text{Unique users with view}} $$
 
 I chose CR as the Primary Metric with a 5% MDE because it is more sensitive to the UX changes of a new payment gateway. I kept ARPU as a Secondary Metric with a 10% MDE to ensure that while I increased conversion, I didn't accidentally lower the total order value.
@@ -50,7 +120,7 @@ Implementation of the basic data analysis you can find in the script (`scripts/c
 
 **Experiment Statistics (`assets/experiment_basic_data.csv`):**
 
-| test_group | view_count | add_to_basket_count | checkout_count | purchase_count | conversion_rate | arpu |
+| Group | View count| Add to basket count | Checkout count | Purchase count | CR | ARPU |
 | :--- | :--- | :--- | :--- | :--- | :--- | :--- |
 | A | 4855 | 3590 | 2253 | 1480 | 0.66 | 16.20 |
 | B | 4935 | 3719 | 2349 | 1618 | 0.69 | 17.88 |
