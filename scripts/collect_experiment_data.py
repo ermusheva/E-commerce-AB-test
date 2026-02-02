@@ -22,25 +22,41 @@ def get_pivoted_df_by_event_type(df, event_name, value_col='event_type', agg_fun
     )
     return pivoted.rename(columns={value_col : 'value'})
 
-def plot_chart(df, title, ylabel, filename):
+def plot_bar(df, title, ylabel, filename):
     dates = df.index
     x = np.arange(len(dates))
     width = 0.35
     
-    plt.bar(x - width/2, df['A'], width, label='Group A', color='#94A3B8')
-    plt.bar(x + width/2, df['B'], width, label='Group B', color="#8B5CF6")
+    plt.bar(x - width/2, df['A'], width, label='Group A', color='#1F3A5F')
+    plt.bar(x + width/2, df['B'], width, label='Group B', color="#C2410C")
     
     plt.title(title)
     plt.xlabel('Date')
     plt.ylabel(ylabel)
-    plt.xticks(x[::15], [d.strftime('%m-%d') for d in dates[::15]])
+    plt.xticks(x[::5], [d.strftime('%m-%d') for d in dates[::5]])
     plt.legend()
     plt.tight_layout()
     plt.savefig(filename)
     plt.close()
 
-def visualize_daily_metrics(engine):
-    query = "SELECT * FROM DailyMetrics ORDER BY date"
+def plot_chart(df, title, ylabel, filename):
+    dates = df.index
+    x = np.arange(len(dates))
+    
+    plt.plot(x, df['A'], label='Group A', color='#1F3A5F')
+    plt.plot(x, df['B'], label='Group B', color="#C2410C")
+    
+    plt.title(title)
+    plt.xlabel('Date')
+    plt.ylabel(ylabel)
+    plt.xticks(x[::5], [d.strftime('%m-%d') for d in dates[::5]])
+    plt.legend()
+    plt.tight_layout()
+    plt.savefig(filename)
+    plt.close()
+
+def visualize_daily_metrics(engine, start_date, end_date):
+    query = f"SELECT * FROM DailyMetrics WHERE date BETWEEN '{start_date}' AND '{end_date}' ORDER BY date"
     df = pd.read_sql(query, con=engine)
     df['date'] = pd.to_datetime(df['date']).dt.date
 
@@ -49,12 +65,19 @@ def visualize_daily_metrics(engine):
     df_count_checkout = get_pivoted_df_by_event_type(df, 'checkout', value_col='event_count', agg_func='sum')
     df_count_purchase = get_pivoted_df_by_event_type(df, 'purchase', value_col='event_count', agg_func='sum')
     df_value_purchase = get_pivoted_df_by_event_type(df, 'purchase', value_col='total_revenue', agg_func='sum')
+    
+    df_unique_checkout = get_pivoted_df_by_event_type(df, 'checkout', value_col='unique_users', agg_func='sum')
+    df_unique_purchase = get_pivoted_df_by_event_type(df, 'purchase', value_col='unique_users', agg_func='sum')
+    df_cr = df_unique_purchase / df_unique_checkout
+    df_cr = df_cr.fillna(0)
 
-    plot_chart(df_count_view, 'Daily Views', 'Count', './/assets//count_views.png')
-    plot_chart(df_count_add_to_basket, 'Daily Add to Basket', 'Count', './/assets//count_baskets.png')
-    plot_chart(df_count_checkout, 'Daily Checkouts', 'Count', './/assets//count_checkouts.png')
-    plot_chart(df_count_purchase, 'Daily Purchases', 'Count', './/assets//count_purchase.png')
-    plot_chart(df_value_purchase, 'Daily Revenue', 'Revenue ($)', './/assets//revenue.png')
+    plot_bar(df_count_view, 'Daily Views', 'Count', './/assets//count_views.png')
+    plot_bar(df_count_add_to_basket, 'Daily Add to Basket', 'Count', './/assets//count_baskets.png')
+    plot_bar(df_count_checkout, 'Daily Checkouts', 'Count', './/assets//count_checkouts.png')
+    plot_bar(df_count_purchase, 'Daily Purchases', 'Count', './/assets//count_purchase.png')
+    plot_bar(df_value_purchase, 'Daily Revenue', 'Revenue ($)', './/assets//revenue.png')
+    plot_bar(df_cr, 'Daily Conversion Rate', 'Conversion Rate', './/assets//daily_cr.png')
+    plot_chart(df_cr, 'Daily Conversion Rate', 'Conversion Rate', './/assets//daily_cr_line.png')
 
 def populate_daily_metrics(engine, experiment_id):
     with engine.connect() as conn:
@@ -83,7 +106,8 @@ def plot_revenue_histogram(engine, start_date, end_date):
     sql_str = f"SELECT * FROM dbo.GetTotalRevenueByUser('{start_date}', '{end_date}')"
     df = pd.read_sql(sql_str, con=engine)
 
-    plt.figure(figsize=(10, 6))
+    
+    # plt.figure(figsize=(10, 6))
     plt.hist(df['revenue_sum'], bins=20, color='#94A3B8')
     plt.title('Experiment Revenue Distribution')
     plt.xlabel('Revenue by user($)')
@@ -109,7 +133,7 @@ if __name__ == "__main__":
     experiment_data.to_csv('.//assets//experiment_basic_data.csv', float_format="%.2f",index=False, mode='w')
 
     #Save plots in assets folder
-    visualize_daily_metrics(engine)
+    visualize_daily_metrics(engine, start_date, end_date)
     plot_revenue_histogram(engine, start_date, end_date)
     print("Plots saved successfully.")
     
