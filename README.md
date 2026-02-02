@@ -85,9 +85,10 @@ erDiagram
 
 *   ARPU (Average Revenue Per User):
 
-    $$ ARPU = \frac{\text{Total revenue}}{\text{Unique users with view}} $$
+    $$ \text{ARPU} = \frac{\text{Total revenue}}{\text{Unique users with view}} $$
 
-I chose CR as the Primary Metric with a 5% MDE because it is more sensitive to the UX changes of a new payment gateway. I kept ARPU as a Secondary Metric with a 10% MDE to ensure that while I increased conversion, I didn't accidentally lower the total order value.
+
+I choose CR as the Primary Metric with a 5% MDE because it is more sensitive to the UX changes of a new payment gateway. I kept ARPU as a Secondary Metric with a 10% MDE to ensure that while I increased conversion, I didn't accidentally lower the total order value.
 
 ### 2. Choose randomization method and samples parameters
 Users were split 50-50 randomly.
