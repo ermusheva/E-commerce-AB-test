@@ -81,11 +81,11 @@ erDiagram
 ### 1. Choose metrics and fix hypothesis
 *   Conversion Rate (CR):
 
-    $$ CR = \frac{\text{Unique users with purchase}}{\text{Unique users with checkout}} $$
+$$ CR = \frac{\text{Unique users with purchase}}{\text{Unique users with checkout}} $$
 
 *   ARPU (Average Revenue Per User):
 
-    $$ \text{ARPU} = \frac{\text{Total revenue}}{\text{Unique users with view}} $$
+$$ \text{ARPU} = \frac{\text{Total revenue}}{\text{Unique users with view}} $$
 
 
 I choose CR as the Primary Metric with a 5% MDE because it is more sensitive to the UX changes of a new payment gateway. I kept ARPU as a Secondary Metric with a 10% MDE to ensure that while I increased conversion, I didn't accidentally lower the total order value.
