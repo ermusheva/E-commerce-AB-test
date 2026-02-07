@@ -62,3 +62,13 @@ CREATE TABLE DailyMetrics (
     FOREIGN KEY (experiment_id) REFERENCES Experiments(experiment_id)
 );
 GO
+
+CREATE TABLE MonthlyCumulativeUniqueUsers  (
+    date DATE,
+    experiment_id INT,
+    test_group CHAR(1), -- 'A' or 'B'
+    cumulative_unique_users INT,
+    PRIMARY KEY (date, experiment_id, test_group),
+    FOREIGN KEY (experiment_id) REFERENCES Experiments(experiment_id)
+);
+GO
