@@ -19,7 +19,7 @@ RETURN
   FROM [EcommABtestDB].[dbo].[EventLogs]
   LEFT JOIN [EcommABtestDB].[dbo].[UserAssignments]
   ON [EventLogs].[user_id] = [UserAssignments].[user_id]
-  WHERE event_timestamp BETWEEN @StartDate AND @EndDate
+  WHERE event_timestamp BETWEEN @StartDate AND DATEADD(day, 1, @EndDate)
   GROUP BY UserAssignments.test_group
 );
 GO
@@ -40,7 +40,7 @@ RETURN
     FROM [EcommABtestDB].[dbo].[EventLogs]
     LEFT JOIN [EcommABtestDB].[dbo].[UserAssignments]
     ON [EventLogs].[user_id] = [UserAssignments].[user_id]
-    WHERE EventLogs.event_timestamp BETWEEN @StartDate AND @EndDate
+    WHERE EventLogs.event_timestamp BETWEEN @StartDate AND DATEADD(day, 1, @EndDate)
     GROUP BY UserAssignments.test_group, UserAssignments.[user_id]
 );
 GO

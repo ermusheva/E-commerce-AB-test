@@ -1,7 +1,7 @@
 import pandas as pd
 import numpy as np
 from faker import Faker
-from sqlalchemy import create_engine
+from sqlalchemy import create_engine, text
 import random
 from datetime import datetime, timedelta
 import configparser
@@ -15,12 +15,17 @@ import data_exchange
 def save_experiment_results(engine, experiment_id, metric_name, control_val, variant_val, p_val, alpha, sample_a, sample_b, duration):
     lift = (variant_val - control_val) / control_val if control_val != 0 else 0
     
+    # Clean up previous results for this metric/experiment to avoid duplicates
+    with engine.connect() as conn:
+        conn.execute(text(f"DELETE FROM ExperimentMetrics WHERE experiment_id = {experiment_id} AND metric_name = '{metric_name}'"))
+        conn.commit()
+    
     results_df = pd.DataFrame([{
         'experiment_id': experiment_id,
         'metric_name': metric_name,
         'control_value': control_val,
         'variant_value': variant_val,
-        'lift_pct': lift * 100,
+        'lift': lift,
         'p_value': p_val,
         'is_significant': 1 if p_val < alpha else 0,
         'analysis_date': datetime.now(),
@@ -67,6 +72,7 @@ if __name__ == "__main__":
     else:
         print(f"\nA/B test doesn't pass! \nNull-hypothesis can NOT be rejected as P-value for CR test {p_value:.4}. \nSamples A and B from experiment do not represent significantly difference.")
 
+    
     save_experiment_results(engine, experiment_id, 'CR', 
                             group_cr.loc['A']['conversion_rate'], 
                             group_cr.loc['B']['conversion_rate'], 
@@ -74,7 +80,8 @@ if __name__ == "__main__":
                             group_cr.loc['A']['view_count'], 
                             group_cr.loc['B']['view_count'], 
                             duration_days)
-
+    
+    
     # A/B test for revenue
     sql_str = f"SELECT * FROM dbo.GetTotalRevenueByUser('{start_date}', '{end_date}')"
     group_revenue = pd.read_sql(sql_str, con=engine)
@@ -86,7 +93,8 @@ if __name__ == "__main__":
         print(f"\nA/B test for revenue passed. \nCan reject null-hypothesis as P-value for ARPU test {p_value:.2}. \nSamples A and B on history data represent significantly difference.")
     else:
         print(f"\nA/B test for revenue doesn't pass! \nNull-hypothesis can NOT be rejected as P-value for ARPU test {p_value:.4}. \nSamples A and B on history data don't represent significantly difference.")
-        
+    
+    
     save_experiment_results(engine, experiment_id, 'ARPU', 
                             group_a_values.mean(), 
                             group_b_values.mean(), 
@@ -94,4 +102,6 @@ if __name__ == "__main__":
                             len(group_a_values), 
                             len(group_b_values), 
                             duration_days)
+    
+    
         

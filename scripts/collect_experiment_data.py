@@ -105,22 +105,24 @@ def populate_daily_metrics(engine, experiment_id):
                     e.user_id,
                     a.test_group, 
                     a.experiment_id,
+                    e.event_type,
                     MONTH(e.event_timestamp) AS event_month,
                     MIN(CAST(e.event_timestamp AS DATE)) AS first_seen_date
                 FROM EventLogs AS e
                 LEFT JOIN UserAssignments AS a 
                 ON e.user_id = a.user_id
                 WHERE e.event_timestamp IS NOT NULL
-                GROUP BY e.user_id, MONTH(e.event_timestamp), a.test_group, a.experiment_id
+                GROUP BY e.user_id, MONTH(e.event_timestamp), a.test_group, a.experiment_id, e.event_type
             )
-            INSERT INTO MonthlyCumulativeUniqueUsers (date, test_group, experiment_id, cumulative_unique_users)
+            INSERT INTO MonthlyCumulativeUniqueUsers (date, test_group, experiment_id, event_type, cumulative_unique_users)
             SELECT 
                 first_seen_date AS date,
                 test_group,
                 experiment_id,
-                SUM(COUNT(user_id)) OVER (PARTITION BY event_month, test_group, experiment_id ORDER BY first_seen_date) AS cumulative_unique_users
+                event_type,
+                SUM(COUNT(user_id)) OVER (PARTITION BY event_month, test_group, experiment_id, event_type ORDER BY first_seen_date) AS cumulative_unique_users
             FROM UserFirstSeenInMonth
-            GROUP BY first_seen_date, event_month, test_group, experiment_id
+            GROUP BY first_seen_date, event_month, test_group, experiment_id, event_type
             """)        )
         conn.commit()
         print("DailyMetrics table populated successfully.")

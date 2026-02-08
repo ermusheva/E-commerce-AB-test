@@ -36,7 +36,7 @@ CREATE TABLE ExperimentMetrics (
     metric_name VARCHAR(50), -- 'CR', 'ARPU'
     control_value FLOAT,
     variant_value FLOAT,
-    lift_pct FLOAT,
+    lift FLOAT,
     p_value FLOAT,
     is_significant BIT,
     analysis_date DATETIME, -- When analysis was run
@@ -67,8 +67,9 @@ CREATE TABLE MonthlyCumulativeUniqueUsers  (
     date DATE,
     experiment_id INT,
     test_group CHAR(1), -- 'A' or 'B'
+    event_type VARCHAR(50), -- 'view', 'add_to_basket', 'checkout', 'purchase'
     cumulative_unique_users INT,
-    PRIMARY KEY (date, experiment_id, test_group),
+    PRIMARY KEY (date, experiment_id, test_group, event_type),
     FOREIGN KEY (experiment_id) REFERENCES Experiments(experiment_id)
 );
 GO

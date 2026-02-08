@@ -82,25 +82,13 @@ GO
 CREATE VIEW vw_PowerBI_Daily AS
 SELECT 
     DailyMetrics.date,
-    MAX(MonthlyCumulativeUniqueUsers.cumulative_unique_users) AS cumulative_unique_users,
     DailyMetrics.experiment_id,
     DailyMetrics.test_group,
-    MAX(CASE WHEN event_type = 'view' THEN unique_users END) AS views,
-    MAX(CASE WHEN event_type = 'add_to_basket' THEN unique_users END) AS baskets,
-    MAX(CASE WHEN event_type = 'checkout' THEN unique_users END) AS checkouts,
-    MAX(CASE WHEN event_type = 'purchase' THEN unique_users END) AS purchases,
-    MAX(CASE WHEN event_type = 'purchase' THEN total_revenue END) AS revenue,
-    CAST(MAX(CASE WHEN event_type = 'purchase' THEN unique_users END) AS FLOAT) / 
-        NULLIF(MAX(CASE WHEN event_type = 'checkout' THEN unique_users END), 0) AS conversion_rate,
-    MAX(CASE WHEN event_type = 'purchase' THEN total_revenue END) / 
-        NULLIF(MAX(CASE WHEN event_type = 'view' THEN unique_users END), 0) AS arpu,
-    SUM(MAX(CASE WHEN event_type = 'purchase' THEN unique_users END)) 
-        OVER (PARTITION BY DailyMetrics.experiment_id, DailyMetrics.test_group ORDER BY DailyMetrics.date) 
-        AS cumulative_purchases,
-    SUM(MAX(CASE WHEN event_type = 'checkout' THEN unique_users END)) 
-        OVER (PARTITION BY DailyMetrics.experiment_id, DailyMetrics.test_group ORDER BY DailyMetrics.date) 
-        AS cumulative_checkouts,
-    SUM(MAX(CASE WHEN event_type = 'purchase' THEN total_revenue END)) 
+    MAX(CASE WHEN DailyMetrics.event_type = 'view' THEN MonthlyCumulativeUniqueUsers.cumulative_unique_users END) AS cumulative_unique_views,
+    MAX(CASE WHEN DailyMetrics.event_type = 'checkout' THEN MonthlyCumulativeUniqueUsers.cumulative_unique_users END) AS cumulative_unique_checkouts,
+    MAX(CASE WHEN DailyMetrics.event_type = 'purchase' THEN MonthlyCumulativeUniqueUsers.cumulative_unique_users END) AS cumulative_unique_purchases,
+
+    SUM(MAX(CASE WHEN DailyMetrics.event_type = 'purchase' THEN total_revenue END)) 
         OVER (PARTITION BY DailyMetrics.experiment_id, DailyMetrics.test_group ORDER BY DailyMetrics.date) 
         AS cumulative_revenue
 FROM DailyMetrics
@@ -108,6 +96,7 @@ LEFT JOIN MonthlyCumulativeUniqueUsers
     ON DailyMetrics.date = MonthlyCumulativeUniqueUsers.date 
     AND DailyMetrics.experiment_id = MonthlyCumulativeUniqueUsers.experiment_id 
     AND DailyMetrics.test_group = MonthlyCumulativeUniqueUsers.test_group
+    AND DailyMetrics.event_type = MonthlyCumulativeUniqueUsers.event_type
 WHERE DailyMetrics.date BETWEEN '2025-06-01' AND '2025-06-30'
 GROUP BY DailyMetrics.date, DailyMetrics.experiment_id, DailyMetrics.test_group;
 GO
