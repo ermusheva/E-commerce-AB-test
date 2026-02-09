@@ -178,6 +178,19 @@ Samples A and B on history data represent significantly difference.
 Saved ARPU results to ExperimentMetrics.
 ```
 
+### 7. Results in Power BI
+The results of the experiment are visualized in Power BI. The dashboard includes key metrics such as conversion rate, revenue, and user counts for both groups.
+
+Daily Experiment Analysis
+ 
+ <img src="assets/EcommABtest Power BI Daily analysis.png" width="90%" />
+
+ Experiment Results at the last day of the experiment
+
+ <img src="assets/EcommABtest PowerBI.png" width="90%" />
+  
+ 
+
 ## Conclusion
 Based on the statistical analysis: 
 + Conversion Rate: The test group (B) showed a statistically significant improvement in conversion rate compared to the control group (A). 
