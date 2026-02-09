@@ -164,7 +164,7 @@ $$ Z = \frac{p_B - p_A}{\sqrt{\frac{p_A(1-p_A)}{n_A} + \frac{p_B(1-p_B)}{n_B}}} 
 Where p_A and p_B are the conversion rates for groups A and B, and n_A and n_B are the number of users in each group.
 
 #### 6.2. A/B test for ARPU
-I used the Mann-Whitney U-test to compare the revenue distributions. This non-parametric test is chosen because revenue data is typically non-normal and skewed (as seen in the histogram), making standard t-tests unreliable. It assesses whether the distribution of the test group is stochastically different from the control group without assuming a normal distribution.
+I used the Mann-Whitney U-test to compare the revenue distributions. This non-parametric test is chosen because revenue data is typically non-normal and skewed (as seen in the histogram), making standard t-tests unreliable. It assesses whether the distribution of the variant group is stochastically different from the control group without assuming a normal distribution.
 
 ```text
 A/B test for CR passed.
@@ -179,7 +179,7 @@ Saved ARPU results to ExperimentMetrics.
 ```
 
 ### 7. Results in Power BI
-The results of the experiment are visualized in Power BI. The dashboard includes key metrics such as conversion rate, revenue, and user counts for both groups.
+The results of the experiment are visualized in Power BI. The dashboard with clickable date includes key metrics such as conversion rate, revenue, and user counts for both groups.
 
 Daily Experiment Analysis
  
@@ -193,7 +193,7 @@ Daily Experiment Analysis
 
 ## Conclusion
 Based on the statistical analysis: 
-+ Conversion Rate: The test group (B) showed a statistically significant improvement in conversion rate compared to the control group (A). 
++ Conversion Rate: The variant group (B) showed a statistically significant improvement in conversion rate compared to the control group (A). 
 + ARPU: The Average Revenue Per User also showed a statistically significant increase. 
 
 Decision: The introduction of Apple Pay and Google Pay buttons has positively impacted both conversion and revenue. It is recommended to roll out the new payment provider to 100% of users.
